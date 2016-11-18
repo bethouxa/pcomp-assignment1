@@ -53,3 +53,14 @@ dkms.conf
 #Codeblocks project files
 .cbp
 .depends
+
+# Eclipse CDT project files & folder
+.cproject
+.project
+.settings
+
+#general IDE stuff
+Debug
+debug
+release
+Release
