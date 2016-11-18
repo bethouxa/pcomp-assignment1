@@ -61,3 +61,13 @@ void allocateAndInitializeACOGraphContents(ACOGraph* g)
 
 
 }
+
+void evaporatePheromones(ACOGraph* g)
+{
+	uint pRate = 0.5;
+	for (int i = 0; i < g->nbNodes; ++i) {
+		for (int j = 0; j < g->nbNodes; ++j) {
+			g->pheromone[i][j] = (1 - pRate) * g->pheromone[i][j];
+		}
+	}	
+}

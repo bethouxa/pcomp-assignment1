@@ -19,3 +19,5 @@ typedef struct
 void allocateAndInitializeACOGraphContents(ACOGraph* g);
 void evaporatePheromones(ACOGraph* g);
 void move(Ant* a, ACOGraph* g);
+
+
