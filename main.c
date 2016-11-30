@@ -10,10 +10,9 @@
 
 int main(int argc, char const *argv[])
 {
-	ACOGraph testGraph;
-	testGraph.nbNodes = 7;
-	allocateAndInitializeACOGraphContents(&testGraph);
+	ACOGraph* testGraph;
+	allocateAndInitializeACOGraphContents(&testGraph, 8);
+
 
 	return 0;
 }
-

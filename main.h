@@ -1,9 +1,10 @@
 typedef unsigned int uint;
+typedef unsigned double udouble;
 typedef unsigned char bool;
 
 typedef struct
 {
-	ACOEdge*** nodes; // 2D array of ACOEdge* (adjacency array)
+	ACOEdge*** edge; // 2D array of ACOEdge* (adjacency matrix)
 	uint nbNodes;
 } ACOGraph;
 
@@ -23,7 +24,18 @@ typedef struct
 
 }Ant;
 
-void allocateAndInitializeACOGraphContents(ACOGraph* g);
+// ######### GRAPH FUNCTIONS ##########
+
+/**
+ * Allocates and initializes the graph representation with the correct amount of nodes
+ */
+void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes);
+void freeACOGraph(ACOGraph* g);
+ACOEdge* getEdges(ACOGraph* g, uint nodeId);
+extern udouble getPheromone(ACOGraph* g, uint x, uint y)
+
+
+
 void evaporatePheromones(ACOGraph* g);
 
 /**

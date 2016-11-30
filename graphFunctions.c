@@ -5,35 +5,52 @@
 
 #include <stdlib.h>
 
-void allocateAndInitializeACOGraphContents(ACOGraph* g)
+
+extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 /* Remember to assign a value to g.nbNodes */
 {
-	g->nodes = malloc(sizeof(ACOEdge**) * g.nbNodes);
+	g = malloc(sizeof(ACOGraph));
 
-	for (int i = 0; i < g.nbNodes; ++i)
+	g->nbNodes = nbNodes;
+
+	g->edge = malloc(sizeof(ACOEdge**) * nbNodes);
+
+	for (int i = 0; i < nbNodes; ++i)
 	{
-		g->nodes[i] = malloc(sizeof(ACOEdge*) * g.nbNodes);
+		g->edge[i] = malloc(sizeof(ACOEdge*) * nbNodes);
 
-		for (int j = 0; j < g.nbNodes; ++j)
+		for (int j = 0; j < nbNodes; ++j)
 		{
-			g->nodes[i][j] = NULL;
+			g->edge[i][j] = calloc(sizeof(ACOEdge)); // Allocate and initialize to NULL all edges
 		}
 	}
-
 }
 
-void freeACOGraph(ACOGraph* g)
+
+extern void freeACOGraph(ACOGraph* g)
 {
 	for (int i = 0; i < g.nbNodes; ++i)
 	{
 		for (int j = 0; j < g.nbNodes; ++j)
 		{
-			free(g->nodes[i][j]);
+			free(g->edge[i][j]); // Free one ACOEdge*
 		}
-		free(g->nodes[i]);
+		free(g->edge[i]); // Free a row of the matrix
 	}
-	free(g->nodes);
+	free(g->edge); // Free the pointer to the matrix
 
-	free(g);
+	free(g); // Free the structure itself
+	g = NULL;
+}
+
+
+extern ACOEdge* getEdges(ACOGraph* g, uint nodeId)
+{
+	return g->edge[nodeId];
+}
+
+extern udouble getPheromone(ACOGraph* g, uint x, uint y)
+{
+	return g->edge[x][y]->pheromone;
 }
 
