@@ -4,7 +4,7 @@
  */
 
 #include <stdlib.h>
-
+#include "main.h"
 
 extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 /* Remember to assign a value to g.nbNodes */
@@ -21,7 +21,7 @@ extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 
 		for (int j = 0; j < nbNodes; ++j)
 		{
-			g->edge[i][j] = calloc(sizeof(ACOEdge)); // Allocate and initialize to NULL all edges
+			g->edge[i][j] = calloc(1,sizeof(ACOEdge)); // Allocate and initialize to NULL all edges
 		}
 	}
 }
@@ -29,9 +29,9 @@ extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 
 extern void freeACOGraph(ACOGraph* g)
 {
-	for (int i = 0; i < g.nbNodes; ++i)
+	for (int i = 0; i < g->nbNodes; ++i)
 	{
-		for (int j = 0; j < g.nbNodes; ++j)
+		for (int j = 0; j < g->nbNodes; ++j)
 		{
 			free(g->edge[i][j]); // Free one ACOEdge*
 		}
@@ -49,8 +49,8 @@ extern ACOEdge* getEdges(ACOGraph* g, uint nodeId)
 	return g->edge[nodeId];
 }
 
-extern udouble getPheromone(ACOGraph* g, uint x, uint y)
+extern double getPheromone(ACOGraph* g, uint x, uint y)
 {
-	return g->edge[x][y]->pheromone;
+	return (g->edge[x][y]->pheromone);
 }
 

@@ -1,6 +1,12 @@
 typedef unsigned int uint;
-typedef unsigned double udouble;
 typedef unsigned char bool;
+
+typedef struct
+{
+	uint weight;
+	uint pheromone;
+	bool isFoodSource;
+} ACOEdge;
 
 typedef struct
 {
@@ -8,12 +14,6 @@ typedef struct
 	uint nbNodes;
 } ACOGraph;
 
-typedef struct
-{
-	uint weight;
-	uint pheromone;
-	bool isFoodSource;
-}ACOEdge;
 
 typedef struct
 {
@@ -32,7 +32,7 @@ typedef struct
 void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes);
 void freeACOGraph(ACOGraph* g);
 ACOEdge* getEdges(ACOGraph* g, uint nodeId);
-extern udouble getPheromone(ACOGraph* g, uint x, uint y)
+double getPheromone(ACOGraph* g, uint x, uint y);
 
 
 
