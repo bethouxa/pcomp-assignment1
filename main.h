@@ -5,7 +5,7 @@ typedef struct
 {
 	uint weight;
 	uint pheromone;
-	bool isFoodSource;
+	
 } ACOEdge;
 
 typedef struct
@@ -13,6 +13,7 @@ typedef struct
 	ACOEdge*** edge; // 2D array of ACOEdge* (adjacency matrix)
 	uint nbNodes;
 	uint hive;
+	bool *foodSource;
 } ACOGraph;
 
 
@@ -35,8 +36,12 @@ void freeACOGraph(ACOGraph* g);
 ACOEdge* getEdges(ACOGraph* g, uint nodeId);
 double getPheromone(ACOGraph* g, uint x, uint y);
 uint getHivePosition(ACOGraph* g);
+void isFoodSource(ACOGraph* g, uint nodeId);
 
 
+
+
+ACOEdge chooseEdges(Ant ant, ACOGraph* g);
 void evaporatePheromones(ACOGraph* g);
 
 /**
@@ -44,6 +49,6 @@ void evaporatePheromones(ACOGraph* g);
  * If ant has ever found food update pheromones
  * If ant is on a food source update ant.hasFoudFood
  */
-void move(/* ? */);
+void move(Ant ant, ACOGraph* g);
 
 

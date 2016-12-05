@@ -59,3 +59,45 @@ void printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentNo
 		printStrongestPheromoneTrailWorker(g, nextNode, rootNode);
 }
 
+/**
+* Move the ant
+* If ant has ever found food update pheromones
+* If ant is on a food source update ant.hasFoundFood
+*/
+
+/*
+current position
+get adjacent edges
+if edge = tabunodes, ignore that edge
+ant[i] chose edge
+ant[i] change position to chosen edge
+if position = food source, update hasfoundfood
+if ant has found food = true, deposit pheromone on position, add position to tabu nodes
+
+
+*/
+void move(Ant ant, ACOGraph* g) {
+	uint chosenEdge = chooseEdges(ant, g);
+	ant.position = chosenEdge;	
+	if (ant.hasFoundFood = true) {
+		chosenEdge.pheromones++;
+		ant.tabuNodes = ant.position;
+	}
+	if (ant.position = chosenEdge.isFoodSource)
+		ant.hasFoundFood = true;
+}
+
+/*Choose Edge*/
+ACOEdge chooseEdges(Ant ant, ACOGraph* g) {
+	getEdges(g, ant.position);
+	int i;
+	for (i = 0; i < g->edge.length; i++) {
+		float attractiveness[i] = g->edge[i]->pheromone*g->edge[i]->weight;
+		float totalAtt = 0;
+			totalAtt += attractiveness[i];			
+	}
+	for (i = 0; i < g->edge.length; i++)
+		float probability[i] = attractiveness[i] / totalAtt;
+
+	return g->edge;
+}

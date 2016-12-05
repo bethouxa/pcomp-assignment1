@@ -26,6 +26,7 @@ int main(int argc, char const *argv[])
 			move(ants[antIndex], g);
 		}
 		evaporatePheromones(g);
+		tickCount++;
 	}
 	printStrongestPheromoneTrail(g,0);
 
