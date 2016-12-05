@@ -12,6 +12,7 @@ typedef struct
 {
 	ACOEdge*** edge; // 2D array of ACOEdge* (adjacency matrix)
 	uint nbNodes;
+	uint hive;
 } ACOGraph;
 
 
@@ -33,7 +34,7 @@ void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes);
 void freeACOGraph(ACOGraph* g);
 ACOEdge* getEdges(ACOGraph* g, uint nodeId);
 double getPheromone(ACOGraph* g, uint x, uint y);
-
+uint getHivePosition(ACOGraph* g);
 
 
 void evaporatePheromones(ACOGraph* g);

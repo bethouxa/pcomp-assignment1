@@ -54,3 +54,6 @@ extern double getPheromone(ACOGraph* g, uint x, uint y)
 	return (g->edge[x][y]->pheromone);
 }
 
+uint getHivePosition(ACOGraph* g) 
+{
+	return g->hive;
