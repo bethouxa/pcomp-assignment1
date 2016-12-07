@@ -44,7 +44,7 @@ extern void freeACOGraph(ACOGraph* g)
 }
 
 
-extern ACOEdge* getEdges(ACOGraph* g, uint nodeId)
+extern ACOEdge** getEdges(ACOGraph* g, uint nodeId)
 {
 	return g->edge[nodeId];
 }
@@ -57,3 +57,4 @@ extern double getPheromone(ACOGraph* g, uint x, uint y)
 uint getHivePosition(ACOGraph* g) 
 {
 	return g->hive;
+}

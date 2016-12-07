@@ -3,8 +3,8 @@
  * belong here.
  */
 
-#include<stdlib.h>
-
+#include <stdlib.h>
+#include <time.h>
 #include "main.h"
 
 
@@ -59,12 +59,6 @@ void printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentNo
 		printStrongestPheromoneTrailWorker(g, nextNode, rootNode);
 }
 
-/**
-* Move the ant
-* If ant has ever found food update pheromones
-* If ant is on a food source update ant.hasFoundFood
-*/
-
 /*
 current position
 get adjacent edges
@@ -87,17 +81,51 @@ void move(Ant ant, ACOGraph* g) {
 		ant.hasFoundFood = true;
 }
 
-/*Choose Edge*/
 ACOEdge chooseEdges(Ant ant, ACOGraph* g) {
-	getEdges(g, ant.position);
-	int i;
-	for (i = 0; i < g->edge.length; i++) {
-		float attractiveness[i] = g->edge[i]->pheromone*g->edge[i]->weight;
-		float totalAtt = 0;
-			totalAtt += attractiveness[i];			
-	}
-	for (i = 0; i < g->edge.length; i++)
-		float probability[i] = attractiveness[i] / totalAtt;
+	
+	uint i;
+	float attractiveness[g->nbNodes];
+	float probability[g->nbNodes]
+	float totalatt;
 
-	return g->edge;
+	ACOEdge edge[g->nbNodes]; edge = g->edge[ant.position]; // get all adges connected to the node where the ant is
+
+	for (i = 0; i < g->nbNodes; i++) {
+		// Compute attractiveness of a node
+		if (edge != NULL)
+			attractiveness[i] = (edge[i]->pheromone) * (edge[i]->weight);
+		else 
+			attractiveness[i] = 0.0;
+		// Add it to the total attractiveness of the surrounding nodes
+		float totalAtt = 0;
+			totalAtt += attractiveness[i];
+	}
+	for (i = 0; i < g->nbNodes; i++)
+		float probability[i] = attractiveness[i] / (totalAtt - attractiveness[i]);
+		//                     attr. of this node / attr. of *the other* nodes
+
+	// random choice weighted by the probability array
+	float sumProbability;
+	for (i = 0; i < g->nbNodes; i++) sumProbability += probability[i];
+	// Change probabilities so that their sum is equal to 1
+	for (i = 0; i < g->nbNodes; i++) probability[i] /= sumProbability;
+
+
+	// Pick an edge w/ a random weighted choice
+	srand((unsigned) time(&t));
+	float r = (float)rand() / (float)RAND_MAX;
+	float icf = 0; // increasing cumulative frequency
+	uint chosenEdge;
+	for (i = 0; i < g->nbNodes; i++)
+	{
+		icf += probability[i];
+		if (r <= icf)
+		{
+			chosenEdge = i;
+			break;
+		}
+	}
+	
+
+	return chosenEdge;
 }
