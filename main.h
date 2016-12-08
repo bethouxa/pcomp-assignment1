@@ -2,7 +2,6 @@
 #define MAIN_H
 
 typedef unsigned int uint;
-typedef unsigned char bool;
 
 typedef struct
 {
@@ -16,7 +15,7 @@ typedef struct
 	ACOEdge*** edge; // 2D array of ACOEdge* (adjacency matrix)
 	uint nbNodes;
 	uint hive;
-	bool *foodSource;
+	uint foodSource;
 } ACOGraph;
 
 
@@ -78,13 +77,16 @@ double getPheromone(ACOGraph* g, uint x, uint y);
  * @return     The hive position.
  */
 uint getHivePosition(ACOGraph* g);
+
 /**
  * @brief      Determines if the given node is food source.
  *
  * @param      g       Graph we're using
  * @param[in]  nodeId  The node identifier
+ *
+ * @return     True if nodeId is food source, False otherwise.
  */
-void isFoodSource(ACOGraph* g, uint nodeId);
+bool isFoodSource(ACOGraph* g, uint nodeId);
 
 
 
@@ -100,7 +102,7 @@ void isFoodSource(ACOGraph* g, uint nodeId);
  *
  * @return     The id of the node where the ant will head next
  */
-ACOEdge chooseEdges(Ant ant, ACOGraph* g);
+uint chooseEdges(Ant* ant, ACOGraph* g);
 void evaporatePheromones(ACOGraph* g);
 
 /**
@@ -111,7 +113,7 @@ void evaporatePheromones(ACOGraph* g);
  * @param 	ant		The ant to move
  * @param 	g 		graph we're using
  */
-void move(Ant ant, ACOGraph* g);
+void move(Ant* ant, ACOGraph* g);
 
 
 #endif

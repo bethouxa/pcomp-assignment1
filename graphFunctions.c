@@ -4,6 +4,7 @@
  */
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include "main.h"
 
 extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
@@ -57,4 +58,9 @@ extern double getPheromone(ACOGraph* g, uint x, uint y)
 uint getHivePosition(ACOGraph* g) 
 {
 	return g->hive;
+}
+
+bool isFoodSource(ACOGraph* g, uint node)
+{
+	return node == g->foodSource;
 }

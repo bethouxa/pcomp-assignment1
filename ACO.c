@@ -3,8 +3,10 @@
  * belong here.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 #include "main.h"
 
 
@@ -18,17 +20,8 @@ void evaporatePheromones(ACOGraph* g)
 	}
 }
 
-/**
- * Prints the trail with the highest amount of pheromones.
- *
- * @param g
- * @param startNode
- */
-void printStrongestPheromoneTrail(ACOGraph* g, uint startNode)
-{
-	printStrongestPheromoneTrailWorker(g, startNode, -1);
-}
-void printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentNode)
+
+void _printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentNode)
 {
 	/*
 	 * - get all edges attached to current node
@@ -41,9 +34,7 @@ void printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentNo
 	int maxPheromone = 0;
 	uint nextNode;
 	bool hasChildren = 0;
-	ACOEdge edges[g->nbNodes];
-
-	edges = getEdges(g, rootNode);
+	ACOEdge** edges = getEdges(g, rootNode);
 
 	for(int i=0; i<=g->nbNodes; ++i)
 	{
@@ -56,8 +47,21 @@ void printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentNo
 	}
 	if(hasChildren)
 		printf(" -> ");
-		printStrongestPheromoneTrailWorker(g, nextNode, rootNode);
+		_printStrongestPheromoneTrailWorker(g, nextNode, rootNode);
 }
+
+
+/**
+ * Prints the trail with the highest amount of pheromones.
+ *
+ * @param g
+ * @param startNode
+ */
+void printStrongestPheromoneTrail(ACOGraph* g, uint startNode)
+{
+	_printStrongestPheromoneTrailWorker(g, startNode, -1);
+}
+
 
 /*
 current position
@@ -70,25 +74,30 @@ if ant has found food = true, deposit pheromone on position, add position to tab
 
 
 */
-void move(Ant ant, ACOGraph* g) {
-	uint chosenEdge = chooseEdges(ant, g);
-	ant.position = chosenEdge;	
-	if (ant.hasFoundFood = true) {
-		chosenEdge.pheromones++;
-		ant.tabuNodes = ant.position;
+void move(Ant* ant, ACOGraph* g) {
+	uint nextNode = chooseEdges(ant, g);
+	if (ant->hasFoundFood == true) {
+		g->edge[ant->position][nextNode]->pheromone++;
+		// Make tabuNodes grow and add the current position as tabu
+		ant->tabuNodes = realloc(ant->tabuNodes, sizeof(uint)+(ant->nbTabuNodes)+1);
+		ant->nbTabuNodes++;
+		ant->tabuNodes[ant->nbTabuNodes] = ant->position;
 	}
-	if (ant.position = chosenEdge.isFoodSource)
-		ant.hasFoundFood = true;
+
+	ant->position = nextNode;	
+	
+	if (isFoodSource(g, ant->position))
+		ant->hasFoundFood = true;
 }
 
-ACOEdge chooseEdges(Ant ant, ACOGraph* g) {
+uint chooseEdges(Ant* ant, ACOGraph* g) {
 	
 	uint i;
 	float attractiveness[g->nbNodes];
-	float probability[g->nbNodes]
-	float totalatt;
+	float probability[g->nbNodes];
+	float totalAtt;
 
-	ACOEdge edge[g->nbNodes]; edge = g->edge[ant.position]; // get all adges connected to the node where the ant is
+	ACOEdge** edge; edge = g->edge[ant->position]; // get all adges connected to the node where the ant is
 
 	for (i = 0; i < g->nbNodes; i++) {
 		// Compute attractiveness of a node
@@ -101,9 +110,10 @@ ACOEdge chooseEdges(Ant ant, ACOGraph* g) {
 			totalAtt += attractiveness[i];
 	}
 	for (i = 0; i < g->nbNodes; i++)
-		float probability[i] = attractiveness[i] / (totalAtt - attractiveness[i]);
+	{	
+		probability[i] = attractiveness[i] / (totalAtt - attractiveness[i]);
 		//                     attr. of this node / attr. of *the other* nodes
-
+	}
 	// random choice weighted by the probability array
 	float sumProbability;
 	for (i = 0; i < g->nbNodes; i++) sumProbability += probability[i];
@@ -112,7 +122,7 @@ ACOEdge chooseEdges(Ant ant, ACOGraph* g) {
 
 
 	// Pick an edge w/ a random weighted choice
-	srand((unsigned) time(&t));
+	srand((unsigned) time(NULL));
 	float r = (float)rand() / (float)RAND_MAX;
 	float icf = 0; // increasing cumulative frequency
 	uint chosenEdge;
