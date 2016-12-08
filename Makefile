@@ -14,3 +14,6 @@ ACO.o: ACO.c
 
 graphFunctions.o: graphFunctions.c
 	$(CC) $(CFLAGS) -c graphFunctions.c
+
+clean:
+	rm -f $(EXENAME) *.o a.out
