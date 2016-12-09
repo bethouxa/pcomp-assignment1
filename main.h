@@ -1,6 +1,11 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <limits.h>
+#include <stdbool.h>
+
+#define INF INT_MAX
+
 typedef unsigned int uint;
 
 typedef struct
@@ -12,7 +17,7 @@ typedef struct
 
 typedef struct
 {
-	ACOEdge*** edge; // 2D array of ACOEdge* (adjacency matrix)
+	ACOEdge** edge; // 2D array of ACOEdge* (adjacency matrix)
 	uint nbNodes;
 	uint hive;
 	uint foodSource;
@@ -27,6 +32,8 @@ typedef struct
 	uint nbTabuNodes;
 
 }Ant;
+
+extern const ACOEdge NullEdge;
 
 // ######### GRAPH FUNCTIONS ##########
 
@@ -56,7 +63,7 @@ void freeACOGraph(ACOGraph* g);
  * @return     An array of g->nbNodes ACOEdges with NULL values if an edge
  *             doesn't exist.
  */	
-ACOEdge** getEdges(ACOGraph* g, uint nodeId);
+ACOEdge* getEdges(ACOGraph* g, uint nodeId);
 
 /**
  * @brief      Gets the pheromone level between two nodes
@@ -68,6 +75,22 @@ ACOEdge** getEdges(ACOGraph* g, uint nodeId);
  * @return     The pheromone level
  */
 double getPheromone(ACOGraph* g, uint x, uint y);
+
+/**
+ * @brief Determines if there is an edge between the two given nodes
+ *
+ * @param		g			The graph we're using
+ * @param[in]	fromNode	Starting node
+ * @param[in]	toNode		End node
+ */
+bool isNullEdge(ACOGraph* g, uint fromNode, uint toNode);
+
+/**
+ * @brief Determines if the edge is null
+ *
+ * @param[in]	e	The edge to check
+ */
+bool isNullEdge2(ACOEdge* e);
 
 /**
  * @brief      Gets the hive position.
@@ -114,6 +137,8 @@ void evaporatePheromones(ACOGraph* g);
  * @param 	g 		graph we're using
  */
 void move(Ant* ant, ACOGraph* g);
+void printStrongestPheromoneTrail(ACOGraph* g, uint startNode);
+
 
 
 #endif

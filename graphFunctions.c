@@ -7,6 +7,12 @@
 #include <stdbool.h>
 #include "main.h"
 
+const ACOEdge NullEdge =
+{
+	INF,
+	0,
+};
+
 extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 /* Remember to assign a value to g.nbNodes */
 {
@@ -18,12 +24,7 @@ extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 
 	for (int i = 0; i < nbNodes; ++i)
 	{
-		g->edge[i] = malloc(sizeof(ACOEdge*) * nbNodes);
-
-		for (int j = 0; j < nbNodes; ++j)
-		{
-			g->edge[i][j] = calloc(1,sizeof(ACOEdge)); // Allocate and initialize to NULL all edges
-		}
+		g->edge[i] = malloc(sizeof(ACOEdge) * nbNodes);
 	}
 }
 
@@ -32,10 +33,6 @@ extern void freeACOGraph(ACOGraph* g)
 {
 	for (int i = 0; i < g->nbNodes; ++i)
 	{
-		for (int j = 0; j < g->nbNodes; ++j)
-		{
-			free(g->edge[i][j]); // Free one ACOEdge*
-		}
 		free(g->edge[i]); // Free a row of the matrix
 	}
 	free(g->edge); // Free the pointer to the matrix
@@ -45,14 +42,24 @@ extern void freeACOGraph(ACOGraph* g)
 }
 
 
-extern ACOEdge** getEdges(ACOGraph* g, uint nodeId)
+extern ACOEdge* getEdges(ACOGraph* g, uint nodeId)
 {
 	return g->edge[nodeId];
 }
 
+bool isNullEdge(ACOGraph* g, uint fromNode, uint toNode)
+{
+	return isNullEdge2(&getEdges(g, fromNode)[toNode]);
+}
+
+bool isNullEdge2(ACOEdge* e)
+{
+	return e->pheromone == 0 && e->weight == INF;
+}
+
 extern double getPheromone(ACOGraph* g, uint x, uint y)
 {
-	return (g->edge[x][y]->pheromone);
+	return (g->edge[x][y].pheromone);
 }
 
 uint getHivePosition(ACOGraph* g) 

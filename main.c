@@ -12,7 +12,7 @@
 
 int main(int argc, char const *argv[])
 {
-	ACOGraph* g;
+	ACOGraph* g = NULL;
 	Ant ants[NB_SIMUL_ANTS];
 
 	allocateAndInitializeACOGraphContents(g, 8);
@@ -23,7 +23,7 @@ int main(int argc, char const *argv[])
 	{
 		for(uint antIndex=0; antIndex<NB_SIMUL_ANTS; ++antIndex)
 		{
-			move(ants[antIndex], g);
+			move(&ants[antIndex], g);
 		}
 		evaporatePheromones(g);
 		tickCount++;

@@ -15,7 +15,7 @@ void evaporatePheromones(ACOGraph* g)
 	uint pRate = 0.5;
 	for (int i = 0; i < g->nbNodes; ++i) {
 		for (int j = 0; j < g->nbNodes; ++j) {
-			g->edge[i][j]->pheromone = (1 - pRate) * g->edge[i][j]->pheromone;
+			g->edge[i][j].pheromone = (1 - pRate) * g->edge[i][j].pheromone;
 		}
 	}
 }
@@ -34,14 +34,14 @@ void _printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentN
 	int maxPheromone = 0;
 	uint nextNode;
 	bool hasChildren = 0;
-	ACOEdge** edges = getEdges(g, rootNode);
+	ACOEdge* edges = getEdges(g, rootNode);
 
 	for(int i=0; i<=g->nbNodes; ++i)
 	{
-		if (edges[i] != NULL && i!=parentNode && edges[i]->pheromone > maxPheromone)
+		if (isNullEdge2(&edges[i]) && i!=parentNode && edges[i].pheromone > maxPheromone)
 		{
 			hasChildren = 1;
-			maxPheromone = edges[i]->pheromone;
+			maxPheromone = edges[i].pheromone;
 			nextNode = i;
 		}
 	}
@@ -77,7 +77,7 @@ if ant has found food = true, deposit pheromone on position, add position to tab
 void move(Ant* ant, ACOGraph* g) {
 	uint nextNode = chooseEdges(ant, g);
 	if (ant->hasFoundFood == true) {
-		g->edge[ant->position][nextNode]->pheromone++;
+		g->edge[ant->position][nextNode].pheromone++;
 		// Make tabuNodes grow and add the current position as tabu
 		ant->tabuNodes = realloc(ant->tabuNodes, sizeof(uint)+(ant->nbTabuNodes)+1);
 		ant->nbTabuNodes++;
@@ -97,12 +97,12 @@ uint chooseEdges(Ant* ant, ACOGraph* g) {
 	float probability[g->nbNodes];
 	float totalAtt;
 
-	ACOEdge** edge; edge = g->edge[ant->position]; // get all adges connected to the node where the ant is
+	ACOEdge* edge = getEdges(g, ant->position); // get all adges connected to the node where the ant is
 
 	for (i = 0; i < g->nbNodes; i++) {
 		// Compute attractiveness of a node
 		if (edge != NULL)
-			attractiveness[i] = (edge[i]->pheromone) * (edge[i]->weight);
+			attractiveness[i] = (edge[i].pheromone) * (edge[i].weight);
 		else 
 			attractiveness[i] = 0.0;
 		// Add it to the total attractiveness of the surrounding nodes
