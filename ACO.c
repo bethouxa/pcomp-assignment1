@@ -9,14 +9,14 @@
 #include <stdbool.h>
 #include "main.h"
 
-#define min(a,b) a<b?a:b;
+#define min(a,b) ((a)>(b)?(a):(b));
 
 void evaporatePheromones(ACOGraph* g)
 {
-	uint pRate = 0.5;
+	float pRate = 0.5;
 	for (int i = 0; i < g->nbNodes; ++i) {
 		for (int j = 0; j < g->nbNodes; ++j) {
-			g->edge[i][j].pheromone = (1 - pRate) * g->edge[i][j].pheromone;
+			g->edge[i][j].pheromone = (1.0 - pRate) * (g->edge[i][j].pheromone);
 		}
 	}
 }
@@ -24,6 +24,7 @@ void evaporatePheromones(ACOGraph* g)
 
 void _printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentNode)
 {
+	fflush(stdout);
 	/*
 	 * - get all edges attached to current node
 	 * - pick the edge with the highest pheromone level
@@ -32,14 +33,20 @@ void _printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentN
 	 */
 	printf("%d", rootNode);
 
-	int maxPheromone = 0;
+	float maxPheromone = 0;
 	uint nextNode;
 	bool hasChildren = 0;
 	ACOEdge* edges = getEdges(g, rootNode);
 
+	if (isFoodSource(g, rootNode))
+	{
+		fflush(stdout);
+		return;
+	}
 	for(int i=0; i<=g->nbNodes; ++i)
 	{
-		if (isNullEdge2(&edges[i]) && i!=parentNode && edges[i].pheromone > maxPheromone)
+		if (!isNullEdge2(&edges[i]) && i!=parentNode && edges[i].pheromone > maxPheromone)
+		// if existing edge, not parent node (to avoid going back & forth), and pheromone higher than local maximum
 		{
 			hasChildren = 1;
 			maxPheromone = edges[i].pheromone;
@@ -47,8 +54,10 @@ void _printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentN
 		}
 	}
 	if(hasChildren)
+	{
 		printf(" -> ");
 		_printStrongestPheromoneTrailWorker(g, nextNode, rootNode);
+	}
 }
 
 
@@ -76,61 +85,93 @@ if ant has found food = true, deposit pheromone on position, add position to tab
 
 */
 void move(Ant* ant, ACOGraph* g) {
-	uint nextNode = chooseEdges(ant, g);
-	if (ant->hasFoundFood == true) {
-		g->edge[ant->position][nextNode].pheromone++;
-		// Make tabuNodes grow and add the current position as tabu
-		ant->tabuNodes = realloc(ant->tabuNodes, sizeof(uint)*((ant->nbTabuNodes)+1) );
-		ant->nbTabuNodes++;
-		ant->tabuNodes[ant->nbTabuNodes] = ant->position;
+
+	if (isFoodSource(g, ant->position))
+	{
+		ant->hasFoundFood = true;
+		clearTabuNodes(ant); // So we don't have to take an entirely different path to come back
 	}
 
-	ant->position = nextNode;	
-	
-	if (isFoodSource(g, ant->position))
-		ant->hasFoundFood = true;
+
+	printf("\nMoving ant #%d:", ant->displ_index);
+
+	uint nextNode = chooseEdges(ant, g);
+	if (nextNode == INF) // Special value meaning that the ant is in a deep dead end and should be reset
+	{
+		int old_displ_index = ant->displ_index;
+		resetAnt(g, ant);
+		printf("Ant #%d was in a deep dead end and was reset, it is now ant #%d", old_displ_index, ant->displ_index);
+		return;
+	}
+	printf(" from node %d to node %d", ant->position, nextNode);
+	if (isFoodSource(g, nextNode)) printf(" (food source!)");
+
+	// Checks if we found food (we can't find food twice as the food node will be tabu from now on
+
+	// Increase pheromones if have found food
+	if (ant->hasFoundFood == true) {
+		printf(" w/ pheromone trail");
+		addPheromone(g, ant->position, nextNode);
+	}
+
+
+
+	// Current node becomes tabu
+	addTabuNode(ant, ant->position);
+	// The actual move
+	ant->position = nextNode;
+
+	fflush(stdout);
 }
 
 uint chooseEdges(Ant* ant, ACOGraph* g) {
 	
 	uint i;
+	float rawAttr;
 	float attractiveness[g->nbNodes];
 	float probability[g->nbNodes];
-	float totalAtt;
+	float totalAtt = 0.0;
 
 	ACOEdge* edge = getEdges(g, ant->position); // get all adges connected to the node where the ant is
 
 	for (i = 0; i < g->nbNodes; i++) {
 		// Compute attractiveness of a node
-		if (!isNullEdge2(&edge[i])) // if edge not null
+		if ( !(isNullEdge2(&edge[i]) || isTabu(ant, i)) ) // if edge not null and not tabu
 		{
-			attractiveness[i] = min(0.5,(edge[i].pheromone) * (1/edge[i].weight));
+			rawAttr = (edge[i].pheromone) * (1/edge[i].weight);
+			attractiveness[i] = rawAttr > 0.5 ? rawAttr : 0.5;
 		}
 		else 
 			attractiveness[i] = 0.0;
 		// Add it to the total attractiveness of the surrounding nodes
 		totalAtt += attractiveness[i];
 	}
+
+	// Dead-end management
 	if (totalAtt == 0.0) // This only happens if we're in a dead-end
 	{
-
+		if (!ant->wasInDeadEnd)
+		{
+			printf(" we're in a dead end / blocked by tabu nodes, going back");
+			ant->wasInDeadEnd = true;
+			return popTabuNode(ant);
+		}
+		else // We're in a deep dead end, tell move() to reset the ant
+		{
+			return INF;
+		}
 	}
+	else {
+		ant->wasInDeadEnd = false;
+	}
+
+	// Pick an edge w/ a random choice weighted by attractivity
 	for (i = 0; i < g->nbNodes; i++)
-	{	
-		probability[i] = attractiveness[i] / (totalAtt - attractiveness[i]);
-		//                     attr. of this node / attr. of *the other* nodes
+	{
+		probability[i] = attractiveness[i] / totalAtt;
 	}
-	// random choice weighted by the probability array
-	float sumProbability;
-	for (i = 0; i < g->nbNodes; i++) sumProbability += probability[i];
-	// Change probabilities so that their sum is equal to 1
-	for (i = 0; i < g->nbNodes; i++) probability[i] /= sumProbability;
-
-
-	// Pick an edge w/ a random weighted choice
-	srand((unsigned) time(NULL));
-	float r = (float)rand() / (float)RAND_MAX;
-	float icf = 0; // increasing cumulative frequency
+	float r = (float)rand() / (float)RAND_MAX; // get a value in [0;1]
+	float icf = 0.0; // increasing cumulative frequency
 	uint chosenEdge;
 	for (i = 0; i < g->nbNodes; i++)
 	{

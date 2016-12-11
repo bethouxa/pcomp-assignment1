@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "main.h"
+#include <stdio.h>
 
 const ACOEdge NullEdge =
 {
@@ -46,13 +47,15 @@ extern void freeACOGraph(ACOGraph* g)
 
 extern ACOEdge* getEdges(ACOGraph* g, uint nodeId)
 {
-	return g->edge[nodeId];
+	ACOEdge* res = g->edge[nodeId];
+	return res;
 }
 
-void addEdge(ACOGraph* g, uint from, uint to, uint weight)
+void addEdge(ACOGraph* g, uint from, uint to, float weight)
 {
 	ACOEdge e = {weight, 0};
 	g->edge[from][to] = e;
+	g->edge[to][from] = e;
 }
 
 bool isNullEdge(ACOGraph* g, uint fromNode, uint toNode)
@@ -68,6 +71,13 @@ bool isNullEdge2(ACOEdge* e)
 extern double getPheromone(ACOGraph* g, uint x, uint y)
 {
 	return (g->edge[x][y].pheromone);
+}
+
+void addPheromone(ACOGraph* g, uint from, uint to)
+{
+	g->edge[from][to].pheromone++;
+	g->edge[to][from].pheromone++;
+
 }
 
 uint getHivePosition(ACOGraph* g) 
@@ -92,9 +102,47 @@ void initAnts(ACOGraph* g, Ant* a, uint nb_ants)
 {
 	for(int i=0; i<nb_ants; ++i)
 	{
-		a[i]->hasFoundFood = false;
-		a[i]->nbTabuNodes = 0;
-		a[i]->tabuNodes = NULL;
-		a[i]->position = g->hive;
+		a[i].hasFoundFood = false;
+		a[i].nbTabuNodes = 0;
+		a[i].tabuNodes = NULL;
+		a[i].position = g->hive;
+		a[i].displ_index = i;
+		a[i].wasInDeadEnd = false;
 	}
+}
+
+void resetAnt(ACOGraph* g, Ant* a)
+{
+	uint old_displ_index = a->displ_index;
+	initAnts(g, a, 1);
+	a->displ_index = old_displ_index+100;
+	printf("\nAnt #%d has been reset, is now #%d", old_displ_index, a->displ_index);
+
+}
+
+void addTabuNode(Ant* a, uint nodeId)
+{
+	a->nbTabuNodes = a->nbTabuNodes+1;
+	a->tabuNodes = realloc(a->tabuNodes, sizeof(uint)*a->nbTabuNodes);
+	a->tabuNodes[a->nbTabuNodes-1] = nodeId;
+}
+
+uint popTabuNode(Ant* a)
+{
+	uint res = a->tabuNodes[a->nbTabuNodes-1];
+	a->nbTabuNodes--;
+	a->tabuNodes = realloc(a->tabuNodes, sizeof(uint)*a->nbTabuNodes);
+	return res;
+}
+
+void clearTabuNodes(Ant* a)
+{
+	a->nbTabuNodes = 0;
+	a->tabuNodes = realloc(a->tabuNodes, sizeof(uint)*a->nbTabuNodes);
+}
+
+void printArray(uint* array, uint elems)
+{
+	for(int i=0; i<elems; ++i)
+		printf("%d", array[i]);
 }

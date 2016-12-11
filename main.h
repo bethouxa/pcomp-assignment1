@@ -11,7 +11,7 @@ typedef unsigned int uint;
 typedef struct
 {
 	uint weight;
-	uint pheromone;
+	float pheromone;
 	
 } ACOEdge;
 
@@ -30,7 +30,8 @@ typedef struct
 	bool hasFoundFood;
 	uint* tabuNodes;
 	uint nbTabuNodes;
-
+	uint displ_index;
+	bool wasInDeadEnd;
 }Ant;
 
 extern const ACOEdge NullEdge;
@@ -54,6 +55,8 @@ void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes);
  */
 void freeACOGraph(ACOGraph* g);
 
+void initAnts(ACOGraph* g, Ant* a, uint nb_ants);
+
 /**
  * @brief      Gets the edges connected to the given node
  *
@@ -64,6 +67,8 @@ void freeACOGraph(ACOGraph* g);
  *             doesn't exist.
  */	
 ACOEdge* getEdges(ACOGraph* g, uint nodeId);
+
+void addEdge(ACOGraph* g, uint from, uint to, float weight);
 
 /**
  * @brief      Gets the pheromone level between two nodes
@@ -111,7 +116,7 @@ uint getHivePosition(ACOGraph* g);
  */
 bool isFoodSource(ACOGraph* g, uint nodeId);
 
-
+bool isTabu(Ant* a, uint nodeId);
 
 /**
  * @brief      Picks the next node for the given ant.
@@ -139,6 +144,10 @@ void evaporatePheromones(ACOGraph* g);
 void move(Ant* ant, ACOGraph* g);
 void printStrongestPheromoneTrail(ACOGraph* g, uint startNode);
 
-
+void printArray(uint* array, uint elems);
+void resetAnt(ACOGraph* g, Ant* a);
+void addTabuNode(Ant* a, uint nodeId);
+uint popTabuNode(Ant* a);
+void clearTabuNodes(Ant* a);
 
 #endif
