@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include "main.h"
 
+#define min(a,b) a<b?a:b;
 
 void evaporatePheromones(ACOGraph* g)
 {
@@ -79,7 +80,7 @@ void move(Ant* ant, ACOGraph* g) {
 	if (ant->hasFoundFood == true) {
 		g->edge[ant->position][nextNode].pheromone++;
 		// Make tabuNodes grow and add the current position as tabu
-		ant->tabuNodes = realloc(ant->tabuNodes, sizeof(uint)+(ant->nbTabuNodes)+1);
+		ant->tabuNodes = realloc(ant->tabuNodes, sizeof(uint)*((ant->nbTabuNodes)+1) );
 		ant->nbTabuNodes++;
 		ant->tabuNodes[ant->nbTabuNodes] = ant->position;
 	}
@@ -101,13 +102,18 @@ uint chooseEdges(Ant* ant, ACOGraph* g) {
 
 	for (i = 0; i < g->nbNodes; i++) {
 		// Compute attractiveness of a node
-		if (edge != NULL)
-			attractiveness[i] = (edge[i].pheromone) * (edge[i].weight);
+		if (!isNullEdge2(&edge[i])) // if edge not null
+		{
+			attractiveness[i] = min(0.5,(edge[i].pheromone) * (1/edge[i].weight));
+		}
 		else 
 			attractiveness[i] = 0.0;
 		// Add it to the total attractiveness of the surrounding nodes
-		float totalAtt = 0;
-			totalAtt += attractiveness[i];
+		totalAtt += attractiveness[i];
+	}
+	if (totalAtt == 0.0) // This only happens if we're in a dead-end
+	{
+
 	}
 	for (i = 0; i < g->nbNodes; i++)
 	{	

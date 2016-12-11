@@ -16,7 +16,7 @@ const ACOEdge NullEdge =
 extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 /* Remember to assign a value to g.nbNodes */
 {
-	g = malloc(sizeof(ACOGraph));
+	//g = malloc(sizeof(ACOGraph));
 
 	g->nbNodes = nbNodes;
 
@@ -25,6 +25,8 @@ extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 	for (int i = 0; i < nbNodes; ++i)
 	{
 		g->edge[i] = malloc(sizeof(ACOEdge) * nbNodes);
+		for(int j = 0; j < nbNodes; ++j)
+		g->edge[i][j] = NullEdge;
 	}
 }
 
@@ -45,6 +47,12 @@ extern void freeACOGraph(ACOGraph* g)
 extern ACOEdge* getEdges(ACOGraph* g, uint nodeId)
 {
 	return g->edge[nodeId];
+}
+
+void addEdge(ACOGraph* g, uint from, uint to, uint weight)
+{
+	ACOEdge e = {weight, 0};
+	g->edge[from][to] = e;
 }
 
 bool isNullEdge(ACOGraph* g, uint fromNode, uint toNode)
@@ -70,4 +78,23 @@ uint getHivePosition(ACOGraph* g)
 bool isFoodSource(ACOGraph* g, uint node)
 {
 	return node == g->foodSource;
+}
+
+bool isTabu(Ant* a, uint nodeId)
+{
+	bool res = false;
+	for (int i=0; i<a->nbTabuNodes; ++i)
+		if (nodeId == a->tabuNodes[i]) res = true;
+	return res;
+}
+
+void initAnts(ACOGraph* g, Ant* a, uint nb_ants)
+{
+	for(int i=0; i<nb_ants; ++i)
+	{
+		a[i]->hasFoundFood = false;
+		a[i]->nbTabuNodes = 0;
+		a[i]->tabuNodes = NULL;
+		a[i]->position = g->hive;
+	}
 }

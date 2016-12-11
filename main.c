@@ -10,12 +10,16 @@
 
 #define NB_SIMUL_ANTS 1
 
+void populateTestData(ACOGraph* g);
+
 int main(int argc, char const *argv[])
 {
-	ACOGraph* g = NULL;
-	Ant ants[NB_SIMUL_ANTS];
+	ACOGraph* g = calloc(1,sizeof(ACOGraph));
+	Ant* ants = calloc(NB_SIMUL_ANTS, sizeof(Ant));
 
-	allocateAndInitializeACOGraphContents(g, 8);
+	initAnts(ants, NB_SIMUL_ANTS);
+	allocateAndInitializeACOGraphContents(g, 5);
+	populateTestData(g);
 
 	uint tickCount = 0;
 
@@ -32,3 +36,38 @@ int main(int argc, char const *argv[])
 
 	return 0;
 }
+
+
+void populateTestData(ACOGraph* g)
+{
+	addEdge(g, 0, 1, 1);
+	addEdge(g, 0, 3, 1);
+	addEdge(g, 1, 2, 1);
+	addEdge(g, 1, 3, 1);
+	addEdge(g, 3, 2, 1);
+	addEdge(g, 3, 4, 1);
+	addEdge(g, 2, 5, 1);
+	addEdge(g, 4, 5, 1);
+
+	g->foodSource = 4;
+	g->hive = 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
