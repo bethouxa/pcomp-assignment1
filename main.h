@@ -133,6 +133,7 @@ bool isTabu(Ant* a, uint nodeId);
 uint chooseEdges(Ant* ant, ACOGraph* g);
 void evaporatePheromones(ACOGraph* g);
 
+void addPheromone(ACOGraph* g, uint from, uint to);
 /**
  * @brief Move the ant to the next node
  * 
@@ -143,6 +144,7 @@ void evaporatePheromones(ACOGraph* g);
  */
 void move(Ant* ant, ACOGraph* g);
 void printStrongestPheromoneTrail(ACOGraph* g, uint startNode);
+
 
 void printArray(uint* array, uint elems);
 void resetAnt(ACOGraph* g, Ant* a);
