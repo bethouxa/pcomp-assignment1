@@ -3,6 +3,7 @@
 
 #include <limits.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #define INF INT_MAX
 
@@ -12,7 +13,7 @@ typedef struct
 {
 	uint weight;
 	float pheromone;
-	
+	pthread_rwlock_t* pheromoneLock;
 } ACOEdge;
 
 typedef struct
@@ -35,6 +36,8 @@ typedef struct
 }Ant;
 
 extern const ACOEdge NullEdge;
+
+extern ACOGraph* g;
 
 // ######### GRAPH FUNCTIONS ##########
 
@@ -80,7 +83,7 @@ void addEdge(ACOGraph* g, uint from, uint to, float weight);
  * @return     The pheromone level
  */
 double getPheromone(ACOGraph* g, uint x, uint y);
-
+double getPheromone2(ACOEdge* e);
 /**
  * @brief Determines if there is an edge between the two given nodes
  *
@@ -134,6 +137,8 @@ uint chooseEdges(Ant* ant, ACOGraph* g);
 void evaporatePheromones(ACOGraph* g);
 
 void addPheromone(ACOGraph* g, uint from, uint to);
+
+void setPheromone(ACOGraph*g, uint from, uint to, float value);
 /**
  * @brief Move the ant to the next node
  * 
@@ -142,7 +147,7 @@ void addPheromone(ACOGraph* g, uint from, uint to);
  * @param 	ant		The ant to move
  * @param 	g 		graph we're using
  */
-void move(Ant* ant, ACOGraph* g);
+void* move(void* ant);
 void printStrongestPheromoneTrail(ACOGraph* g, uint startNode);
 
 

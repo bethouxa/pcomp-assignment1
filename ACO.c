@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include "main.h"
 
 #define min(a,b) ((a)>(b)?(a):(b));
@@ -16,7 +17,7 @@ void evaporatePheromones(ACOGraph* g)
 	float pRate = 0.5;
 	for (int i = 0; i < g->nbNodes; ++i) {
 		for (int j = 0; j < g->nbNodes; ++j) {
-			g->edge[i][j].pheromone = (1.0 - pRate) * (g->edge[i][j].pheromone);
+			setPheromone(g, i, j, (1.0 - pRate) * (getPheromone(g,i,j)));
 		}
 	}
 }
@@ -43,13 +44,13 @@ void _printStrongestPheromoneTrailWorker(ACOGraph* g, uint rootNode, int parentN
 		fflush(stdout);
 		return;
 	}
-	for(int i=0; i<=g->nbNodes; ++i)
+	for(int i=0; i<g->nbNodes; ++i)
 	{
-		if (!isNullEdge2(&edges[i]) && i!=parentNode && edges[i].pheromone > maxPheromone)
+		if (!isNullEdge2(&edges[i]) && i!=parentNode && getPheromone2(&edges[i]) > maxPheromone)
 		// if existing edge, not parent node (to avoid going back & forth), and pheromone higher than local maximum
 		{
 			hasChildren = 1;
-			maxPheromone = edges[i].pheromone;
+			maxPheromone = getPheromone2(&edges[i]);
 			nextNode = i;
 		}
 	}
@@ -84,8 +85,8 @@ if ant has found food = true, deposit pheromone on position, add position to tab
 
 
 */
-void move(Ant* ant, ACOGraph* g) {
-
+void* move(void* param_ant) {
+	Ant* ant = param_ant;
 	if (isFoodSource(g, ant->position))
 	{
 		ant->hasFoundFood = true;
@@ -101,7 +102,7 @@ void move(Ant* ant, ACOGraph* g) {
 		int old_displ_index = ant->displ_index;
 		resetAnt(g, ant);
 		printf("Ant #%d was in a deep dead end and was reset, it is now ant #%d", old_displ_index, ant->displ_index);
-		return;
+		pthread_exit(NULL);
 	}
 	printf(" from node %d to node %d", ant->position, nextNode);
 	if (isFoodSource(g, nextNode)) printf(" (food source!)");
@@ -122,6 +123,7 @@ void move(Ant* ant, ACOGraph* g) {
 	ant->position = nextNode;
 
 	fflush(stdout);
+	pthread_exit(NULL);
 }
 
 uint chooseEdges(Ant* ant, ACOGraph* g) {
@@ -138,7 +140,7 @@ uint chooseEdges(Ant* ant, ACOGraph* g) {
 		// Compute attractiveness of a node
 		if ( !(isNullEdge2(&edge[i]) || isTabu(ant, i)) ) // if edge not null and not tabu
 		{
-			rawAttr = (edge[i].pheromone) * (1/edge[i].weight);
+			rawAttr = (getPheromone2(&edge[i])) * (1/edge[i].weight);
 			attractiveness[i] = rawAttr > 0.5 ? rawAttr : 0.5;
 		}
 		else 

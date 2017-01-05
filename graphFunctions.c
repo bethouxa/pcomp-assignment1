@@ -7,18 +7,11 @@
 #include <stdbool.h>
 #include "main.h"
 #include <stdio.h>
+#include <pthread.h>
 
-const ACOEdge NullEdge =
-{
-	INF,
-	0,
-};
-
-extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
+void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 /* Remember to assign a value to g.nbNodes */
 {
-	//g = malloc(sizeof(ACOGraph));
-
 	g->nbNodes = nbNodes;
 
 	g->edge = malloc(sizeof(ACOEdge**) * nbNodes);
@@ -27,12 +20,16 @@ extern void allocateAndInitializeACOGraphContents(ACOGraph* g, int nbNodes)
 	{
 		g->edge[i] = malloc(sizeof(ACOEdge) * nbNodes);
 		for(int j = 0; j < nbNodes; ++j)
-		g->edge[i][j] = NullEdge;
+		{
+			g->edge[i][j] = (ACOEdge) {INF, 0};
+			g->edge[i][j].pheromoneLock = malloc(sizeof(pthread_rwlock_t));
+			pthread_rwlock_init(g->edge[i][j].pheromoneLock, NULL);
+		}
 	}
 }
 
 
-extern void freeACOGraph(ACOGraph* g)
+void freeACOGraph(ACOGraph* g)
 {
 	for (int i = 0; i < g->nbNodes; ++i)
 	{
@@ -41,11 +38,10 @@ extern void freeACOGraph(ACOGraph* g)
 	free(g->edge); // Free the pointer to the matrix
 
 	free(g); // Free the structure itself
-	g = NULL;
 }
 
 
-extern ACOEdge* getEdges(ACOGraph* g, uint nodeId)
+ACOEdge* getEdges(ACOGraph* g, uint nodeId)
 {
 	ACOEdge* res = g->edge[nodeId];
 	return res;
@@ -53,9 +49,13 @@ extern ACOEdge* getEdges(ACOGraph* g, uint nodeId)
 
 void addEdge(ACOGraph* g, uint from, uint to, float weight)
 {
-	ACOEdge e = {weight, 0};
-	g->edge[from][to] = e;
-	g->edge[to][from] = e;
+	g->edge[from][to] = (ACOEdge) {weight, 0};
+	g->edge[from][to].pheromoneLock = malloc(sizeof(pthread_rwlock_t));
+	pthread_rwlock_init(g->edge[from][to].pheromoneLock, NULL);
+	
+	g->edge[to][from] = (ACOEdge) {weight, 0};
+	g->edge[to][from].pheromoneLock = malloc(sizeof(pthread_rwlock_t));
+	pthread_rwlock_init(g->edge[to][from].pheromoneLock, NULL);
 }
 
 bool isNullEdge(ACOGraph* g, uint fromNode, uint toNode)
@@ -65,19 +65,40 @@ bool isNullEdge(ACOGraph* g, uint fromNode, uint toNode)
 
 bool isNullEdge2(ACOEdge* e)
 {
-	return e->pheromone == 0 && e->weight == INF;
+	return e->weight == INF;
 }
 
-extern double getPheromone(ACOGraph* g, uint x, uint y)
+double getPheromone(ACOGraph* g, uint x, uint y)
 {
-	return (g->edge[x][y].pheromone);
+	return getPheromone2(&(g->edge[x][y]));
+}
+
+double getPheromone2(ACOEdge* e)
+{
+	pthread_rwlock_rdlock(e->pheromoneLock);
+	double res = e->pheromone;
+	pthread_rwlock_unlock(e->pheromoneLock);
+	return res;
 }
 
 void addPheromone(ACOGraph* g, uint from, uint to)
 {
+	pthread_rwlock_rdlock(g->edge[from][to].pheromoneLock);
 	g->edge[from][to].pheromone++;
+	pthread_rwlock_unlock(g->edge[from][to].pheromoneLock);
+	pthread_rwlock_rdlock(g->edge[to][from].pheromoneLock);
 	g->edge[to][from].pheromone++;
+	pthread_rwlock_unlock(g->edge[to][from].pheromoneLock);
+}
 
+void setPheromone(ACOGraph*g, uint from, uint to, float value)
+{
+	pthread_rwlock_wrlock(g->edge[from][to].pheromoneLock);
+	g->edge[from][to].pheromone = value;
+	pthread_rwlock_unlock(g->edge[from][to].pheromoneLock);
+	pthread_rwlock_wrlock(g->edge[to][from].pheromoneLock);
+	g->edge[from][to].pheromone = value;
+	pthread_rwlock_unlock(g->edge[to][from].pheromoneLock);
 }
 
 uint getHivePosition(ACOGraph* g) 
