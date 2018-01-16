@@ -65,22 +65,3 @@ void populateTestData(ACOGraph* g)
 	g->foodSource = 4;
 	g->hive = 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
